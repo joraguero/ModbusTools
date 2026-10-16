@@ -56,6 +56,7 @@ mbServerDialogPort::mbServerDialogPort(QWidget *parent) :
     m_ui.cmbParity          = ui->cmbParity          ;
     m_ui.cmbStopBits        = ui->cmbStopBits        ;
     m_ui.cmbFlowControl     = ui->cmbFlowControl     ;
+    m_ui.chbDtrEnable       = ui->chbDtrEnable       ;
     m_ui.spTimeoutFB        = ui->spTimeoutFB        ;
     m_ui.spTimeoutIB        = ui->spTimeoutIB        ;
     m_ui.spPort             = ui->spPort             ;

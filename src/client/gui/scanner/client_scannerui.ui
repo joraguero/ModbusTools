@@ -216,6 +216,16 @@
                 <item>
                  <widget class="QSpinBox" name="spTimeoutIB"/>
                 </item>
+                <item>
+                 <widget class="QCheckBox" name="chbDtrEnable">
+                  <property name="toolTip">
+                   <string>Assert the DTR line while the serial port is open. Required by many USB CDC devices.</string>
+                  </property>
+                  <property name="text">
+                   <string>DTR</string>
+                  </property>
+                 </widget>
+                </item>
                </layout>
               </item>
               <item>

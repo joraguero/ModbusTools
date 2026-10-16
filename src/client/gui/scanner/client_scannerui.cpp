@@ -29,6 +29,7 @@ mbClientScannerUi::Strings::Strings() : mbCoreDialogBase::Strings(),
     port            (prefix+Modbus::Strings::instance().port),
     serialPortName  (prefix+Modbus::Strings::instance().serialPortName),
     timeoutInterByte(prefix+Modbus::Strings::instance().timeoutInterByte),
+    dtrEnable       (prefix+Modbus::Strings::instance().dtrEnable),
     hostList        (QStringLiteral("hostList")),
     portList        (QStringLiteral("portList")),
     baudRateList    (QStringLiteral("baudRateList")),
@@ -137,6 +138,9 @@ mbClientScannerUi::mbClientScannerUi(QWidget *parent) :
     sp->setMaximum(INT_MAX);
     sp->setValue(d.timeoutInterByte);
 
+    // DTR
+    ui->chbDtrEnable->setChecked(md.dtrEnable);
+
     // Baud Rate List
     vls.clear();
     vls.append(QString::number(md.baudRate));
@@ -226,6 +230,7 @@ MBSETTINGS mbClientScannerUi::cachedSettings() const
     m[s.portList        ] = getValues(ui->lsPort);
     m[s.serialPortName  ] = ui->cmbSerialPortName->currentText();
     m[s.timeoutInterByte] = ui->spTimeoutIB->value();
+    m[s.dtrEnable       ] = ui->chbDtrEnable->isChecked();
     m[s.baudRateList    ] = getValues(ui->lsBaudRate);
     m[s.dataBitsList    ] = getValues(ui->lsDataBits);
     m[s.parityList      ] = getValues(ui->lsParity  );
@@ -258,6 +263,7 @@ void mbClientScannerUi::setCachedSettings(const MBSETTINGS &m)
     it = m.find(s.portList        ); if (it != end) setValues(ui->lsPort, it.value().toList());
     it = m.find(s.serialPortName  ); if (it != end) ui->cmbSerialPortName->setCurrentText(it.value().toString());
     it = m.find(s.timeoutInterByte); if (it != end) ui->spTimeoutIB      ->setValue      (it.value().toInt()   );
+    it = m.find(s.dtrEnable       ); if (it != end) ui->chbDtrEnable     ->setChecked    (it.value().toBool()  );
     it = m.find(s.baudRateList    ); if (it != end) setValues(ui->lsBaudRate, it.value().toList());
     it = m.find(s.dataBitsList    ); if (it != end) setValues(ui->lsDataBits, it.value().toList());
     it = m.find(s.parityList      ); if (it != end) setValues(ui->lsParity  , it.value().toList());
@@ -380,6 +386,7 @@ void mbClientScannerUi::slotStart()
     mbClientScanner::setSettingParity  (s, getValues(ui->lsParity  ));
     mbClientScanner::setSettingStopBits(s, getValues(ui->lsStopBits));
     Modbus::setSettingFlowControl(s, Modbus::NoFlowControl);
+    Modbus::setSettingDtrEnable(s, ui->chbDtrEnable->isChecked());
     mbClientScanner::setSettingRequest(s, m_request);
 
     m_scanner->startScanning(s);

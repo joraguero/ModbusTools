@@ -111,6 +111,7 @@ public:
         Modbus::FlowControl     flowControl     ;
         uint32_t                timeoutFirstByte;
         uint32_t                timeoutInterByte;
+        bool                    dtrEnable       ;
     };
 
     static mbClientMessageParams toFuncParams(const QString &s, bool *ok = nullptr);

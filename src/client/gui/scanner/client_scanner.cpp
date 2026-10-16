@@ -251,6 +251,7 @@ mbClientScanner::DeviceInfo::DeviceInfo()
     flowControl      = d.flowControl     ;
     timeoutFirstByte = d.timeoutFirstByte;
     timeoutInterByte = d.timeoutInterByte;
+    dtrEnable        = d.dtrEnable       ;
 }
 
 mbClientScanner::mbClientScanner(QObject *parent)
@@ -314,6 +315,7 @@ void mbClientScanner::deviceAdd(const Modbus::Settings &settings)
     d.flowControl      = Modbus::getSettingFlowControl     (settings);
     d.timeoutFirstByte = Modbus::getSettingTimeoutFirstByte(settings);
     d.timeoutInterByte = Modbus::getSettingTimeoutInterByte(settings);
+    d.dtrEnable        = Modbus::getSettingDtrEnable       (settings);
     m_lock.lockForWrite();
     int i = m_deviceInfoList.count();
     m_deviceInfoList.append(d);
@@ -535,6 +537,7 @@ Modbus::Settings mbClientScanner::toSettings(const DeviceInfo &d)
     Modbus::setSettingFlowControl     (s, d.flowControl     );
     Modbus::setSettingTimeoutFirstByte(s, d.timeoutFirstByte);
     Modbus::setSettingTimeoutInterByte(s, d.timeoutInterByte);
+    Modbus::setSettingDtrEnable       (s, d.dtrEnable       );
     return s;
 }
 
@@ -553,6 +556,7 @@ void mbClientScanner::fromSettings(DeviceInfo &d, const Modbus::Settings &s)
     d.flowControl      = Modbus::getSettingFlowControl     (s);
     d.timeoutFirstByte = Modbus::getSettingTimeoutFirstByte(s);
     d.timeoutInterByte = Modbus::getSettingTimeoutInterByte(s);
+    d.dtrEnable        = Modbus::getSettingDtrEnable       (s);
 }
 
 

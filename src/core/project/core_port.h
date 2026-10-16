@@ -112,6 +112,8 @@ public: // serial settings
     inline void setTimeoutFirstByte(uint32_t timeout) { m_settings.timeoutFB = timeout; }
     inline uint32_t timeoutInterByte() const { return m_settings.timeoutIB; }
     inline void setTimeoutInterByte(uint32_t timeout) { m_settings.timeoutIB = timeout; }
+    inline bool isDtrEnabled() const { return m_settings.dtrEnable; }
+    inline void setDtrEnabled(bool enable) { m_settings.dtrEnable = enable; }
 
 public: // common settings
     inline bool isBroadcastEnabled() const { return m_settings.isBroadcastEnabled; }
@@ -170,6 +172,7 @@ protected:
         Modbus::FlowControl         flowControl       ;
         uint32_t                    timeoutFB         ;
         uint32_t                    timeoutIB         ;
+        bool                        dtrEnable         ;
         bool                        isBroadcastEnabled;
     } m_settings;
 

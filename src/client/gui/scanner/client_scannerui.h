@@ -36,6 +36,7 @@ public:
         const QString port            ;
         const QString serialPortName  ;
         const QString timeoutInterByte;
+        const QString dtrEnable       ;
         const QString hostList        ;
         const QString portList        ;
         const QString baudRateList    ;

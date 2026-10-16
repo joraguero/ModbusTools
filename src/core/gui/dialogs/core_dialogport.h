@@ -81,6 +81,7 @@ protected:
         QComboBox        *cmbParity         ;
         QComboBox        *cmbStopBits       ;
         QComboBox        *cmbFlowControl    ;
+        QCheckBox        *chbDtrEnable      ;
         QSpinBox         *spTimeoutFB       ;
         QSpinBox         *spTimeoutIB       ;
         QSpinBox         *spPort            ;

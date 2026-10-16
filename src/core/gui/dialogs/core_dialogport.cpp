@@ -108,6 +108,9 @@ void mbCoreDialogPort::initializeBaseUi()
         cmb->addItem(Modbus::toString(v));
     cmb->setCurrentText(Modbus::toString(d.flowControl));
 
+    // DTR
+    m_ui.chbDtrEnable->setChecked(d.dtrEnable);
+
     // Timeout first byte
     sp = m_ui.spTimeoutFB;
     sp->setMinimum(0);
@@ -153,6 +156,7 @@ MBSETTINGS mbCoreDialogPort::cachedSettings() const
     m[prefix+ms.parity            ] = m_ui.cmbParity        ->currentText();
     m[prefix+ms.stopBits          ] = m_ui.cmbStopBits      ->currentText();
     m[prefix+ms.flowControl       ] = m_ui.cmbFlowControl   ->currentText();
+    m[prefix+ms.dtrEnable         ] = m_ui.chbDtrEnable     ->isChecked();
     m[prefix+ms.timeoutFirstByte  ] = m_ui.spTimeoutFB      ->value();
     m[prefix+ms.timeoutInterByte  ] = m_ui.spTimeoutIB      ->value();
     m[prefix+ms.port              ] = m_ui.spPort   ->value();
@@ -181,6 +185,7 @@ void mbCoreDialogPort::setCachedSettings(const MBSETTINGS &m)
     it = m.find(prefix+ms.parity            ); if (it != end) m_ui.cmbParity         ->setCurrentText(it.value().toString());
     it = m.find(prefix+ms.stopBits          ); if (it != end) m_ui.cmbStopBits       ->setCurrentText(it.value().toString());
     it = m.find(prefix+ms.flowControl       ); if (it != end) m_ui.cmbFlowControl    ->setCurrentText(it.value().toString());
+    it = m.find(prefix+ms.dtrEnable         ); if (it != end) m_ui.chbDtrEnable      ->setChecked    (it.value().toBool());
     it = m.find(prefix+ms.timeoutFirstByte  ); if (it != end) m_ui.spTimeoutFB       ->setValue      (it.value().toInt());
     it = m.find(prefix+ms.timeoutInterByte  ); if (it != end) m_ui.spTimeoutIB       ->setValue      (it.value().toInt());
     it = m.find(prefix+ms.port              ); if (it != end) m_ui.spPort            ->setValue      (it.value().toInt());
@@ -222,6 +227,7 @@ void mbCoreDialogPort::fillForm(const MBSETTINGS &m)
     it = m.find(ss.parity            ); if (it != end) m_ui.cmbParity         ->setCurrentText(it.value().toString());
     it = m.find(ss.stopBits          ); if (it != end) m_ui.cmbStopBits       ->setCurrentText(it.value().toString());
     it = m.find(ss.flowControl       ); if (it != end) m_ui.cmbFlowControl    ->setCurrentText(it.value().toString());
+    it = m.find(ss.dtrEnable         ); if (it != end) m_ui.chbDtrEnable      ->setChecked    (it.value().toBool());
     it = m.find(ss.timeoutFirstByte  ); if (it != end) m_ui.spTimeoutFB       ->setValue      (it.value().toInt   ());
     it = m.find(ss.timeoutInterByte  ); if (it != end) m_ui.spTimeoutIB       ->setValue      (it.value().toInt   ());
     it = m.find(ss.port              ); if (it != end) m_ui.spPort            ->setValue      (it.value().toInt   ());
@@ -244,6 +250,7 @@ void mbCoreDialogPort::fillData(MBSETTINGS &m) const
     m[ss.parity            ] = m_ui.cmbParity         ->currentText();
     m[ss.stopBits          ] = m_ui.cmbStopBits       ->currentText();
     m[ss.flowControl       ] = m_ui.cmbFlowControl    ->currentText();
+    m[ss.dtrEnable         ] = m_ui.chbDtrEnable      ->isChecked  ();
     m[ss.timeoutFirstByte  ] = m_ui.spTimeoutFB       ->value      ();
     m[ss.timeoutInterByte  ] = m_ui.spTimeoutIB       ->value      ();
     m[ss.port              ] = m_ui.spPort            ->value      ();

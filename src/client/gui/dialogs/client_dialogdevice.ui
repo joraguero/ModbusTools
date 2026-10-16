@@ -178,23 +178,40 @@
                <widget class="QComboBox" name="cmbFlowControl"/>
               </item>
               <item row="6" column="0">
+               <widget class="QLabel" name="labelDtr">
+                <property name="text">
+                 <string>DTR</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="1">
+               <widget class="QCheckBox" name="chbDtrEnable">
+                <property name="toolTip">
+                 <string>Assert the DTR line while the serial port is open. Required by many USB CDC devices.</string>
+                </property>
+                <property name="text">
+                 <string>Enable</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="0">
                <widget class="QLabel" name="label_24">
                 <property name="text">
                  <string>Timeout first byte</string>
                 </property>
                </widget>
               </item>
-              <item row="6" column="1">
+              <item row="7" column="1">
                <widget class="QSpinBox" name="spTimeoutFB"/>
               </item>
-              <item row="7" column="0">
+              <item row="8" column="0">
                <widget class="QLabel" name="label_23">
                 <property name="text">
                  <string>Timeout inter byte</string>
                 </property>
                </widget>
               </item>
-              <item row="7" column="1">
+              <item row="8" column="1">
                <widget class="QSpinBox" name="spTimeoutIB"/>
               </item>
               <item row="10" column="1">
