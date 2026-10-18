@@ -328,6 +328,35 @@ bool mbClientDataView::isRequestValid() const
     return m_request.device && (m_request.quantity > 0) && functionByMemoryType(m_request.memoryType);
 }
 
+int mbClientDataView::requestEnd() const
+{
+    // Note: the same quantity as the read message created by the runtime
+    int count = qMin(m_request.quantity, maxQuantity(m_request.device, m_request.memoryType));
+    return static_cast<int>(m_request.offset) + qMax(count, 0);
+}
+
+mbClientDataView::SpanState mbClientDataView::spanState(int index) const
+{
+    if ((index < 0) || (index >= m_items.count()))
+        return Span_Normal;
+    int coveredEnd = -1; // end (exclusive) of the value of the last decoded row
+    for (int i = 0; i < index; i++)
+    {
+        const mbCoreDataViewItem *item = m_items.at(i);
+        int offset = item->addressOffset();
+        if (offset < coveredEnd)
+            continue;
+        coveredEnd = offset + qMax(item->length(), 1);
+    }
+    const mbCoreDataViewItem *item = m_items.at(index);
+    int offset = item->addressOffset();
+    if (offset < coveredEnd)
+        return Span_Covered;
+    if (offset + qMax(item->length(), 1) > requestEnd())
+        return Span_Incomplete;
+    return Span_Normal;
+}
+
 void mbClientDataView::rebuildItems()
 {
     // Keep rows (with their format, comment etc.) which address is still inside of the request

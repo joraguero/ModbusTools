@@ -147,7 +147,14 @@ public: // request
     inline int requestQuantity() const { return m_request.quantity; }
     void setRequestQuantity(int quantity);
     bool isRequestValid() const;
+    int requestEnd() const;
     void rebuildItems();
+
+    // Note: state of the row value relative to the rows above it:
+    //       Covered - the address of the row belongs to the value of a previous row (e.g. 2nd register of Float),
+    //       Incomplete - the value of the row needs addresses beyond the end of the request
+    enum SpanState { Span_Normal, Span_Covered, Span_Incomplete };
+    SpanState spanState(int index) const;
     // Note: defines request by the rows of the data view of previous versions (that had no own request)
     void setRequestFromItems(mbClientDevice *defaultDevice);
 

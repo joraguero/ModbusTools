@@ -180,6 +180,9 @@ void mbClientUi::initialize()
     ui->actionDataViewItemInsert ->setVisible(false);
     ui->actionDataViewItemDelete ->setVisible(false);
     ui->actionDataViewImportItems->setVisible(false);
+    ui->actionEditCut            ->setVisible(false);
+    ui->actionEditPaste          ->setVisible(false);
+    ui->actionEditInsert         ->setVisible(false);
 }
 
 MBSETTINGS mbClientUi::cachedSettings() const
@@ -579,7 +582,16 @@ void mbClientUi::menuSlotDataViewInsert()
 
 void mbClientUi::menuSlotDataViewDelete()
 {
-    if (!core()->isRunning())
+    if (core()->isRunning())
+        return;
+    mbClientDataView *wl = dataViewManager()->activeDataView();
+    if (!wl)
+        return;
+    QMessageBox::StandardButton res = QMessageBox::question(this,
+                                                            QStringLiteral("Delete Data View"),
+                                                            QString("Are you sure you want to delete '%1'?").arg(wl->name()),
+                                                            QMessageBox::Yes|QMessageBox::No);
+    if (res == QMessageBox::Yes)
         mbCoreUi::menuSlotDataViewDelete();
 }
 

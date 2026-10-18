@@ -286,7 +286,7 @@ void mbCoreUi::initialize()
         QAction* actionShow = new QAction("Show", menu);
         connect(actionShow, SIGNAL(triggered()), this, SLOT(show()));
         QAction* actionQuit = new QAction("Quit", menu);
-        connect(actionShow, SIGNAL(triggered()), this, SLOT(fileQuit()));
+        connect(actionQuit, SIGNAL(triggered()), this, SLOT(fileQuit()));
         connect(m_tray, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
                 this, SLOT(slotTrayActivated(QSystemTrayIcon::ActivationReason)));
         menu->addAction(actionShow);

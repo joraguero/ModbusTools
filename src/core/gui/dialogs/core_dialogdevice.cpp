@@ -118,9 +118,6 @@ void mbCoreDialogDevice::initializeBaseUi()
     // ByteArray format
     cmb = m_ui.cmbByteArrayFormat;
     mb::fillDigitalFormatComboBox(cmb);
-    ls = mb::enumDigitalFormatKeyList();
-    for (int i = 1 ; i < ls.count(); i++) // pass 'DefaultDigitalFormat' for device
-        cmb->addItem(QString(ls.at(i)));
 
     // ByteArray separator
     ln = m_ui.lnByteArraySeparator;

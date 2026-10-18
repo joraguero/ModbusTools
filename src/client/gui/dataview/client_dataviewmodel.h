@@ -23,10 +23,13 @@
 #ifndef CLIENT_DATAVIEWMODEL_H
 #define CLIENT_DATAVIEWMODEL_H
 
+#include <QHash>
+
 #include <core/gui/dataview/core_dataviewmodel.h>
 
 class mbClientDataView;
 class mbClientDataViewItem;
+class mbCoreDataViewItem;
 
 class mbClientDataViewModel : public mbCoreDataViewModel
 {
@@ -44,6 +47,14 @@ public:
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
     bool setDataEdit(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
+
+private Q_SLOTS:
+    void itemSpanChanged(mbCoreDataViewItem *item);
+
+private:
+    // Note: length (in addresses) of the rows as they were last shown,
+    //       when it's changed the following rows (covered by the value) must be refreshed
+    mutable QHash<const mbCoreDataViewItem*, int> m_lengths;
 };
 
 #endif // CLIENT_DATAVIEWMODEL_H

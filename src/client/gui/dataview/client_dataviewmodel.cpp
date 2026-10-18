@@ -32,11 +32,19 @@
 mbClientDataViewModel::mbClientDataViewModel(mbClientDataView *dataView, QObject *parent) :
     mbCoreDataViewModel(dataView, parent)
 {
+    connect(dataView, &mbCoreDataView::itemChanged, this, &mbClientDataViewModel::itemSpanChanged);
+    connect(dataView, &mbCoreDataView::itemAdded  , this, [this]() { m_lengths.clear(); });
+    connect(dataView, &mbCoreDataView::itemRemoved, this, [this]() { m_lengths.clear(); });
 }
 
 mbClientDataViewModel::~mbClientDataViewModel()
 {
 }
+
+// Text of the value of the row which is covered by the value of a previous row
+// (e.g. 2nd register of a Float) or which needs addresses beyond the end of the request
+static const QString CoveredValueStr    = QStringLiteral("--");
+static const QString IncompleteValueStr = QStringLiteral("**");
 
 QVariant mbClientDataViewModel::data(const QModelIndex &index, int role) const
 {
@@ -56,11 +64,32 @@ QVariant mbClientDataViewModel::data(const QModelIndex &index, int role) const
                     return dev->name();
                 break;
             case mbCoreDataView::Address    : return d->addressStr();
-            case mbCoreDataView::Format     : return d->formatStr();
+            case mbCoreDataView::Format     :
+                m_lengths.insert(d, d->length());
+                return d->formatStr();
             case mbCoreDataView::Comment    : return d->comment();
-            case mbClientDataView::Timestamp: return mb::toString(d->timestamp());
-            case mbCoreDataView::Value      : return d->value();
+            case mbClientDataView::Timestamp:
+            case mbCoreDataView::Value      :
+                m_lengths.insert(d, d->length());
+                switch (dataView()->spanState(index.row()))
+                {
+                case mbClientDataView::Span_Covered   : return CoveredValueStr;
+                case mbClientDataView::Span_Incomplete: return IncompleteValueStr;
+                default:
+                    break;
+                }
+                if (c == mbCoreDataView::Value)
+                    return d->value();
+                return mb::toString(d->timestamp());
             }
+        }
+            break;
+        case Qt::ForegroundRole:
+        {
+            int c = dataView()->getColumnTypeByIndex(index.column());
+            if (((c == mbCoreDataView::Value) || (c == mbClientDataView::Timestamp)) &&
+                (dataView()->spanState(index.row()) != mbClientDataView::Span_Normal))
+                return QBrush(Qt::gray);
         }
             break;
         }
@@ -76,7 +105,8 @@ Qt::ItemFlags mbClientDataViewModel::flags(const QModelIndex &index) const
     {
     // Note: Device and Address of the row are defined by the request of the data view
     case mbCoreDataView::Value:
-        if (mbClient::global()->isRunning()) // value can be editable only when it's polling mode
+        // value can be editable only when it's polling mode and the row has its own value
+        if (mbClient::global()->isRunning() && (dataView()->spanState(index.row()) == mbClientDataView::Span_Normal))
             f |= Qt::ItemIsEditable;
         break;
     case mbCoreDataView::Format:
@@ -90,5 +120,20 @@ Qt::ItemFlags mbClientDataViewModel::flags(const QModelIndex &index) const
 bool mbClientDataViewModel::setDataEdit(const QModelIndex &/*index*/, const QVariant &/*value*/, int /*role*/)
 {
     return false;
+}
+
+void mbClientDataViewModel::itemSpanChanged(mbCoreDataViewItem *item)
+{
+    // Refresh the following rows when the length of the value of the row is changed (e.g. format Dec16 -> Float)
+    int len = item->length();
+    QHash<const mbCoreDataViewItem*, int>::iterator it = m_lengths.find(item);
+    if ((it != m_lengths.end()) && (it.value() == len))
+        return;
+    m_lengths.insert(item, len);
+    int i = dataView()->itemIndex(reinterpret_cast<mbClientDataViewItem*>(item));
+    int last = rowCount() - 1;
+    if ((i < 0) || (i >= last))
+        return;
+    Q_EMIT dataChanged(createIndex(i + 1, 0), createIndex(last, columnCount() - 1));
 }
 

@@ -66,6 +66,9 @@ mbClientDialogDataViewItem::mbClientDialogDataViewItem(QWidget *parent) :
 
     qobject_cast<QFormLayout*>(ui->tabParameters->layout())->setWidget(1, QFormLayout::FieldRole, m_addressWidget);
     initializeBaseUi();
+    // Device and address of the item are defined by the request of the data view
+    ui->cmbDevice->setEnabled(false);
+    m_addressWidget->setEnabled(false);
 }
 
 mbClientDialogDataViewItem::~mbClientDialogDataViewItem()

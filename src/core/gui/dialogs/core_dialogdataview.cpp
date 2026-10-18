@@ -139,7 +139,7 @@ MBSETTINGS mbCoreDialogDataView::getSettings(const MBSETTINGS &settings, const Q
         setWindowTitle(Strings::instance().title);
     else
         setWindowTitle(title);
-    QString defaultNotation = QString("Default (%1)").arg(mb::toString(mbCore::globalCore()->addressNotation()));
+    QString defaultNotation = QString("Default (%1)").arg(mb::toFineString(mbCore::globalCore()->addressNotation()));
     ui->cmbAddressNotation->setItemText(0, defaultNotation);
     if (settings.count())
         fillForm(settings);
