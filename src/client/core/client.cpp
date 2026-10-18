@@ -64,6 +64,8 @@ mbClient::~mbClient()
 int mbClient::columnTypeByName(const QString &name) const
 {
     int res = mbCore::columnTypeByName(name);
+    if (res == mbCoreDataView::Device) // Note: device is shown in the header of the data view (ID)
+        return -1;
     if (res < 0)
     {
         QMetaEnum me = QMetaEnum::fromType<mbClientDataView::ClientColumns>();
@@ -121,16 +123,10 @@ mbCoreProject *mbClient::createProject()
     project->deviceAdd(d);
     port->deviceAdd(d);
 
+    // Default window: Read Holding Registers (03), address 0, quantity 10
     mbClientDataView *wl = new mbClientDataView;
-    int address = 400001;
-    for (int i = 0; i < 10; ++i)
-    {
-        mbClientDataViewItem *item = new mbClientDataViewItem();
-        item->setDevice(d);
-        item->setAddress(address);
-        ++address;
-        wl->itemAdd(item);
-    }
+    wl->setRequestDevice(d);
+    wl->rebuildItems();
     project->dataViewAdd(wl);
 
     return project;

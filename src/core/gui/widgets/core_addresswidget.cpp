@@ -78,6 +78,7 @@ mb::Address mbCoreAddressWidget::getAddress() const
     {
     case mb::Address::Notation_IEC61131:
     case mb::Address::Notation_IEC61131Hex:
+    case mb::Address::Notation_Modbus0:
         adr.setOffset(static_cast<quint16>(m_spAddress->value()));
         break;
     default:
@@ -109,6 +110,7 @@ void mbCoreAddressWidget::setAddress(const mb::Address &adr)
     {
     case mb::Address::Notation_IEC61131:
     case mb::Address::Notation_IEC61131Hex:
+    case mb::Address::Notation_Modbus0:
         m_spAddress->setValue(adr.offset());
         break;
     default:
@@ -127,6 +129,7 @@ void mbCoreAddressWidget::setAddressNotation(int notation)
     switch (notation)
     {
     case mb::Address::Notation_IEC61131:
+    case mb::Address::Notation_Modbus0:
         m_spAddress->setMinimum(0);
         m_spAddress->setMaximum(USHRT_MAX);
         m_spAddress->setHex(false);

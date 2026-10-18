@@ -57,42 +57,9 @@ QVariant mbClientDataViewModel::data(const QModelIndex &index, int role) const
                 break;
             case mbCoreDataView::Address    : return d->addressStr();
             case mbCoreDataView::Format     : return d->formatStr();
-            case mbClientDataView::Period   : return d->period();
             case mbCoreDataView::Comment    : return d->comment();
-            case mbClientDataView::Status   : return mb::toString(d->status());
             case mbClientDataView::Timestamp: return mb::toString(d->timestamp());
             case mbCoreDataView::Value      : return d->value();
-            }
-        }
-            break;
-        case Qt::BackgroundRole:
-        {
-            int c = dataView()->getColumnTypeByIndex(index.column());
-            switch(c)
-            {
-            case mbClientDataView::Status:
-            {
-                int status = d->status();
-                if (status == mb::Status_MbStopped)
-                    return QBrush(QColor(0xF0, 0xF0, 0xF0));
-                if (status == mb::Status_MbInitializing)
-                    return QBrush(Qt::lightGray);
-                if (Modbus::StatusIsGood(static_cast<Modbus::StatusCode>(status)))
-                    return QBrush(QColor(0xCC, 0xFF, 0xCC));
-                if (Modbus::StatusIsBad(static_cast<Modbus::StatusCode>(status)))
-                    return QBrush(QColor(0xFF, 0xCC, 0xCC));
-            }
-                break;
-            }
-        }
-            break;
-        case Qt::ForegroundRole:
-        {
-            int c = dataView()->getColumnTypeByIndex(index.column());
-            switch(c)
-            {
-            case mbClientDataView::Status:
-                return QBrush(Qt::black);
             }
         }
             break;
@@ -104,15 +71,10 @@ QVariant mbClientDataViewModel::data(const QModelIndex &index, int role) const
 Qt::ItemFlags mbClientDataViewModel::flags(const QModelIndex &index) const
 {
     Qt::ItemFlags f = QAbstractItemModel::flags(index);
-    int c = index.column();
+    int c = dataView()->getColumnTypeByIndex(index.column());
     switch (c)
     {
-    case mbCoreDataView::Device:
-    case mbCoreDataView::Address:
-    case mbClientDataView::Period:
-        if (!mbClient::global()->isRunning()) // can be editable when it's no polling mode
-            f |= Qt::ItemIsEditable;
-        break;
+    // Note: Device and Address of the row are defined by the request of the data view
     case mbCoreDataView::Value:
         if (mbClient::global()->isRunning()) // value can be editable only when it's polling mode
             f |= Qt::ItemIsEditable;
@@ -125,20 +87,8 @@ Qt::ItemFlags mbClientDataViewModel::flags(const QModelIndex &index) const
     return f;
 }
 
-bool mbClientDataViewModel::setDataEdit(const QModelIndex &index, const QVariant &value, int role)
+bool mbClientDataViewModel::setDataEdit(const QModelIndex &/*index*/, const QVariant &/*value*/, int /*role*/)
 {
-    mbClientDataViewItem* d = dataView()->itemAt(index.row());
-    if (d && (role == Qt::EditRole))
-    {
-        switch(index.column())
-        {
-        case mbClientDataView::Period:
-            d->setPeriod(value.toInt());
-            return true;
-        default:
-            return false;
-        }
-    }
     return false;
 }
 

@@ -28,6 +28,30 @@
 
 #include "client_device.h"
 
+mbClientPort::Strings::Strings() :
+    mbCorePort::Strings(),
+    pollDelay(QStringLiteral("pollDelay"))
+{
+}
+
+const mbClientPort::Strings &mbClientPort::Strings::instance()
+{
+    static const Strings s;
+    return s;
+}
+
+mbClientPort::Defaults::Defaults() :
+    mbCorePort::Defaults(),
+    pollDelay(100)
+{
+}
+
+const mbClientPort::Defaults &mbClientPort::Defaults::instance()
+{
+    static const Defaults d;
+    return d;
+}
+
 mbClientPort::Statistics::Statistics() :
     CoreStatistics()
 {
@@ -40,6 +64,27 @@ mbClientPort::mbClientPort(QObject *parent) :
     m_stat = new Statistics;
 
     m_settings.host = Modbus::Defaults::instance().host;
+    m_pollDelay = Defaults::instance().pollDelay;
+}
+
+MBSETTINGS mbClientPort::settings() const
+{
+    MBSETTINGS r = mbCorePort::settings();
+    r.insert(Strings::instance().pollDelay, pollDelay());
+    return r;
+}
+
+bool mbClientPort::setSettings(const MBSETTINGS &settings)
+{
+    MBSETTINGS::ConstIterator it = settings.find(Strings::instance().pollDelay);
+    if (it != settings.constEnd())
+    {
+        bool ok;
+        uint32_t v = it.value().toUInt(&ok);
+        if (ok)
+            setPollDelay(v);
+    }
+    return mbCorePort::setSettings(settings);
 }
 
 mbClientPort::~mbClientPort()

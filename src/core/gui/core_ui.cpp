@@ -1071,7 +1071,7 @@ void mbCoreUi::menuSlotWindowTile()
 void mbCoreUi::menuSlotHelpAbout()
 {
     QMessageBox::about(this, m_core->applicationName(),
-                       QStringLiteral("Fork by: Jorge Luis Aguero, 2026 \n")+
+                       QStringLiteral("Fork by: Jorge Aguero, 2026 \n")+
                        QStringLiteral("Version: " MBTOOLS_VERSION_STR "\n") +
                        QStringLiteral("ModbusLib Version: ") + QString(Modbus::modbusLibVersionStr()) + QStringLiteral("\n")+
                        QStringLiteral("Developed by:\nSerhii Marchuk, Kyiv, Ukraine, 2023\nhttps://github.com/serhmarch"));

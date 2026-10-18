@@ -22,6 +22,8 @@
 */
 #include "client_dom.h"
 
+#include "client_dataview.h"
+
 // -----------------------------------------------------------------------------------------------------------------------
 // ------------------------------------------------------ DATA VIEW ------------------------------------------------------
 // -----------------------------------------------------------------------------------------------------------------------
@@ -32,6 +34,32 @@ mbClientDomDataViewItem::mbClientDomDataViewItem() : mbCoreDomDataViewItem()
 
 mbClientDomDataView::mbClientDomDataView() : mbCoreDomDataView()
 {
+}
+
+bool mbClientDomDataView::readExtraElement(const QString &tag, mbCoreXmlStreamReader &reader)
+{
+    const mbClientDataView::Strings &s = mbClientDataView::Strings::instance();
+    if ((tag == s.requestDevice  ) ||
+        (tag == s.requestFunction) ||
+        (tag == s.requestAddress ) ||
+        (tag == s.requestQuantity))
+    {
+        m_request.insert(tag, reader.readElementText());
+        return true;
+    }
+    return false;
+}
+
+void mbClientDomDataView::writeExtraElements(mbCoreXmlStreamWriter &writer) const
+{
+    const mbClientDataView::Strings &s = mbClientDataView::Strings::instance();
+    const QStringList tags = { s.requestDevice, s.requestFunction, s.requestAddress, s.requestQuantity };
+    Q_FOREACH (const QString &tag, tags)
+    {
+        MBSETTINGS::ConstIterator it = m_request.find(tag);
+        if (it != m_request.constEnd())
+            writer.writeTextElement(tag, it.value().toString());
+    }
 }
 
 // -----------------------------------------------------------------------------------------------------------------------

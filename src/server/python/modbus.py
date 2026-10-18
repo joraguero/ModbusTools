@@ -15,6 +15,7 @@ Notation_Default     = 0 ##< Default notation which is equal to Modbus notation
 Notation_Modbus      = 1 ##< Standard Modbus address notation like `000001`, `100001`, `300001`, `400001`
 Notation_IEC61131    = 2 ##< IEC-61131 address notation like `%%Q0`, `%%I0`, `%%IW0`, `%%MW0`
 Notation_IEC61131Hex = 3 ##< IEC-61131 Hex address notation like `%%Q0000h`, `%%I0000h`, `%%IW0000h`, `%%MW0000h`
+Notation_Modbus0     = 4 ##< Modbus address notation 0-based: offset only, like `0`, `100` for `400001`, `400101`
 
 
 ## @brief Python set that contains supported Modbus Address types
@@ -196,6 +197,7 @@ class Address:
         * `Notation_Modbus`      - `Address(Memory_4x, 0)` will be converted to `"400001"`.
         * `Notation_IEC61131`    - `Address(Memory_4x, 0)` will be converted to `"%MW0"`.
         * `Notation_IEC61131Hex` - `Address(Memory_4x, 0)` will be converted to `"%MW0000h"`.
+        * `Notation_Modbus0`     - `Address(Memory_4x, 0)` will be converted to `"0"`.
         """
         def to_dec_string(n, width=0):
             return str(n).rjust(width, '0') if width else str(n)
@@ -210,6 +212,9 @@ class Address:
             return IEC61131PrefixMap.get(self._type, "") + to_dec_string(self._offset)
         elif notation == Notation_IEC61131Hex:
             return IEC61131PrefixMap.get(self._type, "") + to_hex_string(self._offset) + cIEC61131SuffixHex
+
+        elif notation == Notation_Modbus0:
+            return to_dec_string(self._offset)
 
         else:
             return to_dec_string(self.toint(), 6)

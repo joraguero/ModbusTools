@@ -24,6 +24,7 @@
 #include "ui_client_dialogport.h"
 
 #include <QIntValidator>
+#include <QSpinBox>
 
 #include <client.h>
 #include <project/client_port.h>
@@ -42,6 +43,14 @@ mbClientDialogPort::mbClientDialogPort(QWidget *parent) :
     // Host
     ln = ui->lnHost;
     ln->setText(d.host);
+
+    // Poll delay: delay between requests of the data view windows of the port
+    m_spPollDelay = new QSpinBox(this);
+    m_spPollDelay->setRange(0, 3600000);
+    m_spPollDelay->setSuffix(QStringLiteral(" ms"));
+    m_spPollDelay->setValue(static_cast<int>(mbClientPort::Defaults::instance().pollDelay));
+    m_spPollDelay->setToolTip(QStringLiteral("Delay between the end of a data view request and the start of the next one"));
+    ui->formLayout_2->addRow(QStringLiteral("Poll delay"), m_spPollDelay);
 
     m_ui.lnName             = ui->lnName             ;
     m_ui.cmbType            = ui->cmbType            ;
@@ -99,6 +108,9 @@ void mbClientDialogPort::fillFormInner(const MBSETTINGS &settings)
     MBSETTINGS::const_iterator end = settings.end();
 
     it = settings.find(vs.host); if (it != end) ui->lnHost->setText(it.value().toString());
+
+    const mbClientPort::Strings &s = mbClientPort::Strings::instance();
+    it = settings.find(s.pollDelay); if (it != end) m_spPollDelay->setValue(it.value().toInt());
 }
 
 void mbClientDialogPort::fillDataInner(MBSETTINGS &settings) const
@@ -106,4 +118,5 @@ void mbClientDialogPort::fillDataInner(MBSETTINGS &settings) const
     Modbus::Strings vs = Modbus::Strings::instance();
 
     settings[vs.host] = ui->lnHost->text();
+    settings[mbClientPort::Strings::instance().pollDelay] = m_spPollDelay->value();
 }

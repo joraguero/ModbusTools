@@ -38,7 +38,6 @@ mbClientDeviceRunnable::mbClientDeviceRunnable(mbClientRunDevice *device, Modbus
     m_modbusPort = modbusPort;
     m_modbusClient = new ModbusClient(m_device->unit(), m_modbusPort);
     m_modbusClient->setContext(device->device());
-    createReadMessages();
 }
 
 mbClientDeviceRunnable::~mbClientDeviceRunnable()
@@ -81,8 +80,10 @@ void mbClientDeviceRunnable::run()
                 fRepeat = true;
                 break;
             }
-            if (hasReadMessageOnDuty())
+            if (m_readRequest)
             {
+                m_currentMessage = m_readRequest;
+                m_readRequest = nullptr;
                 m_state = STATE_EXEC_READ;
                 m_currentMessage->prepareToSend();
                 fRepeat = true;
@@ -113,55 +114,6 @@ void mbClientDeviceRunnable::run()
         }
     }
     while (fRepeat);
-}
-
-void mbClientDeviceRunnable::createReadMessages()
-{
-    QList<mbClientRunItem*> items;
-    m_device->popItemsToRead(items);
-    Q_FOREACH (mbClientRunItem *item, items)
-    {
-        mbClientRunMessagePtr m = nullptr;
-        for (mbClientRunMessagePtr &message: m_readMessages)
-        {
-            if (message->addItem(item))
-            {
-                m = message;
-                break;
-            }
-        }
-        if (m == nullptr)
-        {
-            switch (item->memoryType())
-            {
-            case Modbus::Memory_0x:
-                m = new mbClientRunMessageReadCoils(item, m_device->maxReadCoils());
-                pushReadMessage(m);
-                break;
-            case Modbus::Memory_1x:
-                m = new mbClientRunMessageReadDiscreteInputs(item, m_device->maxReadDiscreteInputs());
-                pushReadMessage(m);
-                break;
-            case Modbus::Memory_3x:
-                m = new mbClientRunMessageReadInputRegisters(item, m_device->maxReadInputRegisters());
-                pushReadMessage(m);
-                break;
-            case Modbus::Memory_4x:
-                m = new mbClientRunMessageReadHoldingRegisters(item, m_device->maxReadHoldingRegisters());
-                pushReadMessage(m);
-                break;
-            default:
-                delete item;
-                break;
-            }
-        }
-    }
-}
-
-void mbClientDeviceRunnable::pushReadMessage(const mbClientRunMessagePtr &message)
-{
-    message->setDeleteItems(false);
-    m_readMessages.append(message);
 }
 
 bool mbClientDeviceRunnable::createWriteMessage()
@@ -216,25 +168,6 @@ bool mbClientDeviceRunnable::popWriteMessage(mbClientRunMessagePtr *message)
         mbClientRunMessagePtr m = m_writeMessages.dequeue();
         *message = m;
         return true;
-    }
-    return false;
-}
-
-bool mbClientDeviceRunnable::hasReadMessageOnDuty()
-{
-    if (m_currentMessage)
-           return true;
-    mb::Timestamp_t tm = QDateTime::currentMSecsSinceEpoch();
-    for (Messages_t::Iterator it = m_readMessages.begin(); it != m_readMessages.end(); ++it)
-    {
-        mbClientRunMessagePtr m = *it;
-        if ((tm - m->beginTimestamp()) >= m->period())
-        {
-            m_readMessages.erase(it);  // remove it from queue ...
-            m_readMessages.enqueue(m); // and push it to back of queue
-            m_currentMessage = m;
-            return true;
-        }
     }
     return false;
 }
@@ -509,7 +442,8 @@ Modbus::StatusCode mbClientDeviceRunnable::execReadMessage()
     if (Modbus::StatusIsBad(res))
     {
         QString text = m_modbusPort->lastErrorText();
-        mbClient::LogError(m_device->name(), text);
+        QString source = m_currentMessage->sourceName();
+        mbClient::LogError(source.isEmpty() ? m_device->name() : source, text);
     }
     m_currentMessage->setComplete(res, QDateTime::currentMSecsSinceEpoch());
     return res;

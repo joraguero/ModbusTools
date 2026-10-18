@@ -30,6 +30,7 @@ class QIODevice;
 class mbClientProject;
 class mbClientPort;
 class mbClientDevice;
+class mbClientDataView;
 class mbClientDomProject;
 class mbClientDomPort;
 class mbClientDomDevice;
@@ -73,7 +74,9 @@ public:
 
 public:
     void fillProject(mbCoreProject *obj, const mbCoreDomProject *dom) override;
+    void fillDataView(mbCoreDataView *obj, const mbCoreDomDataView *dom) override;
     void fillDataViewItem(mbCoreDataViewItem *obj, const mbCoreDomDataViewItem *dom) override;
+    void fillDomDataView(mbCoreDomDataView *dom, const mbCoreDataView *obj) override;
     void fillDomDataViewItem(mbCoreDomDataViewItem *dom, const mbCoreDataViewItem *obj) override;
 
 protected:

@@ -34,17 +34,15 @@ void mbClientRunItem::init(mb::Client::ItemHandle_t handle, Modbus::MemoryType m
     m_count = count;
 }
 
-mbClientRunItem::mbClientRunItem(mb::Client::ItemHandle_t handle, Modbus::MemoryType memoryType, uint16_t offset, uint16_t count, uint32_t period, int size)
+mbClientRunItem::mbClientRunItem(mb::Client::ItemHandle_t handle, Modbus::MemoryType memoryType, uint16_t offset, uint16_t count, int size)
 {
     init(handle, memoryType, offset, count);
-    m_period = period;
     m_data = QByteArray(size, '\0');
 }
 
 mbClientRunItem::mbClientRunItem(mb::Client::ItemHandle_t handle, Modbus::MemoryType memoryType, uint16_t offset, uint16_t count, const QByteArray &data)
 {
     init(handle, memoryType, offset, count);
-    m_period = 0;
     m_data = data;
 }
 

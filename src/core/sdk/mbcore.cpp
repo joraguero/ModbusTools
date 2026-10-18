@@ -151,7 +151,8 @@ Strings::Strings() :
     Address_Modbus                         (QStringLiteral("Modbus")),
     Address_IEC61131                       (QStringLiteral("IEC61131")),
     Address_IEC61131Hex                    (QStringLiteral("IEC61131Hex")),
-    IEC61131Prefix0x                       (QStringLiteral("%Q")),
+    Address_Modbus0                        (QStringLiteral("Modbus0")),
+    IEC61131Prefix0x                      (QStringLiteral("%Q")),
     IEC61131Prefix1x                       (QStringLiteral("%I")),
     IEC61131Prefix3x                       (QStringLiteral("%IW")),
     IEC61131Prefix4x                       (QStringLiteral("%MW")),
@@ -382,6 +383,7 @@ QString toFineString(AddressNotation notation)
     case mb::Address::Notation_Modbus     : return QStringLiteral("Modbus (1-based)");
     case mb::Address::Notation_IEC61131   : return QStringLiteral("IEC61131 (0-based)");
     case mb::Address::Notation_IEC61131Hex: return QStringLiteral("IEC61131 Hex (0-based)");
+    case mb::Address::Notation_Modbus0    : return QStringLiteral("Modbus (0-based)");
     }
     return QString();
 }
@@ -395,6 +397,7 @@ QString toString(AddressNotation notation)
     case mb::Address::Notation_Modbus     : return s.Address_Modbus     ;
     case mb::Address::Notation_IEC61131   : return s.Address_IEC61131   ;
     case mb::Address::Notation_IEC61131Hex: return s.Address_IEC61131Hex;
+    case mb::Address::Notation_Modbus0    : return s.Address_Modbus0    ;
     default:
         return QString();
     }
@@ -421,6 +424,12 @@ AddressNotation toAddressNotation(const QString &address, bool *ok)
             *ok = true;
         return mb::Address::Notation_IEC61131Hex;
     }
+    if (address == s.Address_Modbus0)
+    {
+        if (ok)
+            *ok = true;
+        return mb::Address::Notation_Modbus0;
+    }
     if (address == s.Address_Default)
     {
         if (ok)
@@ -444,6 +453,7 @@ AddressNotation toAddressNotation(const QVariant &notation, bool *ok)
         case mb::Address::Notation_Modbus:
         case mb::Address::Notation_IEC61131:
         case mb::Address::Notation_IEC61131Hex:
+        case mb::Address::Notation_Modbus0:
             if (ok)
                 *ok = true;
             return static_cast<mb::AddressNotation>(n);

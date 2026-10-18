@@ -491,6 +491,7 @@ struct MBTOOLS_EXPORT Strings
     const QString Address_Modbus                         ;
     const QString Address_IEC61131                       ;
     const QString Address_IEC61131Hex                    ;
+    const QString Address_Modbus0                        ;
     const QString IEC61131Prefix0x                       ;
     const QString IEC61131Prefix1x                       ;
     const QString IEC61131Prefix3x                       ;

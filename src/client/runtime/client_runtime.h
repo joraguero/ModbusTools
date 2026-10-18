@@ -29,6 +29,7 @@
 
 class mbClientPort;
 class mbClientDevice;
+class mbClientDataView;
 class mbClientDataViewItem;
 class mbClientRunPort;
 class mbClientRunDevice;
@@ -59,6 +60,7 @@ private:
     void clearComponents() override;
 
 private:
+    mbClientRunMessagePtr createReadMessage(mbClientDataView *dataView);
     mbClientRunItem *createRunItem(mbClientDataViewItem *item);
     mbClientRunItem *createRunItem(mbClientDataViewItem *item, const QByteArray &data);
     mbClientRunPort *createRunPort(mbClientPort *port);

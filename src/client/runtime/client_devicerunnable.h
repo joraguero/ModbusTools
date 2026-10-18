@@ -58,18 +58,15 @@ public:
 public:
     void run() override;
 
-private:
-    void createReadMessages();
-    void pushReadMessage(const mbClientRunMessagePtr &message);
+public:
+    // Note: read request of the data view window, it's executed after external and write messages
+    inline void requestRead(const mbClientRunMessagePtr &message) { m_readRequest = message; }
 
 private:
     bool createWriteMessage();
     inline bool hasWriteMessage() const { return m_writeMessages.count() > 0; }
     void pushWriteMessage(const mbClientRunMessagePtr &message);
     bool popWriteMessage(mbClientRunMessagePtr *message);
-
-private:
-    bool hasReadMessageOnDuty();
 
 private:
     Modbus::StatusCode execExternalMessage();
@@ -88,8 +85,8 @@ private:
 private:
     typedef QQueue<mbClientRunMessagePtr> Messages_t;
     Messages_t m_writeMessages;
-    Messages_t m_readMessages;
 
+    mbClientRunMessagePtr m_readRequest;
     mbClientRunMessagePtr m_currentMessage;
 };
 

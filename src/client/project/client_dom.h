@@ -40,6 +40,18 @@ class mbClientDomDataView: public mbCoreDomDataView
 public:
     mbClientDomDataView();
     mbCoreDomDataViewItem *newItem() const override { return new mbClientDomDataViewItem; }
+
+public:
+    // Modbus request of the data view: 'requestDevice', 'requestFunction', 'requestAddress', 'requestQuantity'
+    inline MBSETTINGS request() const { return m_request; }
+    inline void setRequest(const MBSETTINGS &request) { m_request = request; }
+
+protected:
+    bool readExtraElement(const QString &tag, mbCoreXmlStreamReader &reader) override;
+    void writeExtraElements(mbCoreXmlStreamWriter &writer) const override;
+
+private:
+    MBSETTINGS m_request;
 };
 // -----------------------------------------------------------------------------------------------------------------------
 // -------------------------------------------------------- DEVICE -------------------------------------------------------

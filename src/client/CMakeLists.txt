@@ -28,6 +28,7 @@ set(MBTOOLS_HEADERS
     gui/dialogs/settings/client_dialogsettings.h
     gui/dialogs/client_dialogdevice.h
     gui/dialogs/client_dialogport.h
+    gui/dialogs/client_dialogdataview.h
     gui/dialogs/client_dialogdataviewitem.h
     gui/dialogs/client_dialogs.h
     gui/project/client_projectdelegate.h
@@ -89,6 +90,7 @@ set(MBTOOLS_SOURCES
     gui/dialogs/settings/client_dialogsettings.cpp
     gui/dialogs/client_dialogdevice.cpp
     gui/dialogs/client_dialogport.cpp
+    gui/dialogs/client_dialogdataview.cpp
     gui/dialogs/client_dialogdataviewitem.cpp
     gui/dialogs/client_dialogs.cpp
     gui/project/client_projectdelegate.cpp

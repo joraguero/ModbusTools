@@ -35,6 +35,7 @@ class ModbusClientPort;
 class mbClientRunPort;
 class mbClientRunDevice;
 class mbClientDeviceRunnable;
+class mbClientDataView;
 
 class mbClientPortRunnable : public QObject
 {
@@ -64,6 +65,7 @@ private:
 
 private:
     Modbus::StatusCode execExternalMessage();
+    void pollDataViews();
 
 private Q_SLOTS:
     void slotBytesTx(const Modbus::Char *source, const uint8_t* buff, uint16_t size);
@@ -90,6 +92,22 @@ private:
     
     Runnables_t m_runnables;
     HashRunnables_t m_hashRunnables;
+
+private: // data view windows: each one is requested every 'scanRate' ms,
+         // only one request at a time with 'm_pollDelay' between the end of a request and the start of the next one
+    struct Poll
+    {
+        mbClientDeviceRunnable *runnable      ;
+        mbClientRunMessagePtr   message       ;
+        mbClientDataView       *dataView      ;
+        uint32_t                scanRate      ;
+        mb::Timestamp_t         lastBeginTime ;
+    };
+    QList<Poll> m_polls;
+    int m_pollIndex;
+    bool m_pollActive;
+    uint32_t m_pollDelay;
+    mb::Timestamp_t m_pollLastCompleteTime;
 };
 
 #endif // CLIENT_PORTRUNNABLE_H

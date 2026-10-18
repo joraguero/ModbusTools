@@ -55,7 +55,6 @@ public:
     inline uint16_t writeOffset() const { return m_writeOffset; }
     inline uint16_t writeCount () const { return m_writeCount ; }
     inline uint16_t maxCount() const { return m_count; }
-    inline uint32_t period() const { return m_period; }
     inline const void *innerBuffer() const { return m_buff; }
     inline void *innerBuffer() { return m_buff; }
     inline uint16_t *innerBufferReg() { return reinterpret_cast<uint16_t*>(innerBuffer()); }
@@ -65,9 +64,13 @@ public:
     inline Modbus::StatusCode status() const { return m_status; }
     inline mb::Timestamp_t beginTimestamp() const { return m_beginTimestamp; }
     inline mb::Timestamp_t timestamp() const { return m_timestamp; }
+    // Note: name of the message source for log (e.g. 'Device/dataView'), empty by default
+    inline QString sourceName() const { return m_sourceName; }
+    inline void setSourceName(const QString &name) { m_sourceName = name; }
 
 public:
     bool addItem(mbClientRunItem *item);
+    inline void attachItem(mbClientRunItem *item) { addItemPrivate(item); } // add item without changing message range
     void setDeleteItems(bool del);
 
 public:
@@ -116,12 +119,12 @@ protected:
     uint16_t m_writeCount;
     uint16_t m_andMask;
     uint16_t m_orMask;
-    uint32_t m_period;
     uint16_t m_maxCount;
     Modbus::StatusCode m_status;
     mb::Timestamp_t m_beginTimestamp;
     mb::Timestamp_t m_timestamp;
     uint8_t m_buff[MSG_MAX_BYTES];
+    QString m_sourceName;
 
 protected:
     QByteArray m_dataTx;

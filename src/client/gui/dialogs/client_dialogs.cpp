@@ -30,6 +30,7 @@
 #include "settings/client_dialogsettings.h"
 #include "client_dialogport.h"
 #include "client_dialogdevice.h"
+#include "client_dialogdataview.h"
 #include "client_dialogdataviewitem.h"
 
 mbClientDialogs::mbClientDialogs(QWidget *parent) :
@@ -39,6 +40,8 @@ mbClientDialogs::mbClientDialogs(QWidget *parent) :
     m_settings = new mbClientDialogSettings(parent);
     m_port = new mbClientDialogPort(parent);
     m_device = new mbClientDialogDevice(parent);
+    delete m_dataView;
+    m_dataView = new mbClientDialogDataView(parent);
     m_dataViewItem = new mbClientDialogDataViewItem(parent);
 
     m_projectInfo->setProjectType(QStringLiteral("Client Project"));

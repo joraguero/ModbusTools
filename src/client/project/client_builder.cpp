@@ -32,6 +32,8 @@
 
 #include "client_dom.h"
 
+#include <client.h>
+
 mbClientBuilder::Strings::Strings() :
     sep(';')
 {
@@ -49,10 +51,7 @@ mbClientBuilder::mbClientBuilder(QObject *parent) : mbCoreBuilder(parent)
 
 QStringList mbClientBuilder::csvDataViewItemAttributes() const
 {
-    const mbClientDataViewItem::Strings &s = mbClientDataViewItem::Strings::instance();
-    QStringList ls = mbCoreBuilder::csvDataViewItemAttributes();
-    ls.insert(3, s.period);
-    return ls;
+    return mbCoreBuilder::csvDataViewItemAttributes();
 }
 
 mbCoreProject *mbClientBuilder::newProject() const
@@ -117,6 +116,55 @@ void mbClientBuilder::fillProject(mbCoreProject *obj, const mbCoreDomProject *do
             port->deviceAdd(device);
     }
     setWorkingProjectCore(nullptr);
+}
+
+void mbClientBuilder::fillDataView(mbCoreDataView *obj, const mbCoreDomDataView *dom)
+{
+    mbCoreBuilder::fillDataView(obj, dom);
+    mbClientDataView *dataView = static_cast<mbClientDataView*>(obj);
+    const mbClientDomDataView *domDataView = dynamic_cast<const mbClientDomDataView*>(dom);
+    MBSETTINGS request;
+    if (domDataView)
+        request = domDataView->request();
+    if (request.isEmpty())
+    {
+        // Project of previous version: data view has no own request
+        mbClientProject *p = project();
+        dataView->setRequestFromItems(p && p->deviceCount() ? p->device(0) : nullptr);
+    }
+    else
+    {
+        const mbClientDataView::Strings &s = mbClientDataView::Strings::instance();
+        mbClientProject *p = project();
+        bool ok;
+        dataView->setRequestDevice(p ? p->device(request.value(s.requestDevice).toString()) : nullptr);
+        int func = request.value(s.requestFunction).toInt(&ok);
+        if (ok)
+            dataView->setRequestFunction(func);
+        int offset = request.value(s.requestAddress).toInt(&ok);
+        if (ok && (offset >= 0) && (offset <= USHRT_MAX))
+            dataView->setRequestOffset(static_cast<quint16>(offset));
+        int quantity = request.value(s.requestQuantity).toInt(&ok);
+        if (ok)
+            dataView->setRequestQuantity(quantity);
+    }
+    dataView->rebuildItems();
+}
+
+void mbClientBuilder::fillDomDataView(mbCoreDomDataView *dom, const mbCoreDataView *obj)
+{
+    mbCoreBuilder::fillDomDataView(dom, obj);
+    mbClientDomDataView *domDataView = dynamic_cast<mbClientDomDataView*>(dom);
+    if (!domDataView)
+        return;
+    const mbClientDataView::Strings &s = mbClientDataView::Strings::instance();
+    const mbClientDataView *dataView = static_cast<const mbClientDataView*>(obj);
+    MBSETTINGS request;
+    request[s.requestDevice  ] = dataView->requestDevice() ? dataView->requestDevice()->name() : QString();
+    request[s.requestFunction] = dataView->requestFunction();
+    request[s.requestAddress ] = dataView->requestOffset();
+    request[s.requestQuantity] = dataView->requestQuantity();
+    domDataView->setRequest(request);
 }
 
 void mbClientBuilder::fillDataViewItem (mbCoreDataViewItem *obj, const mbCoreDomDataViewItem *dom)

@@ -66,10 +66,14 @@ mbCoreDialogDataView::mbCoreDialogDataView(QWidget *parent) :
     
     // Address Notation
     cmb =  ui->cmbAddressNotation;
-    cmb->addItem(mb::toString(mb::Address::Notation_Default));
-    cmb->addItem(mb::toFineString(mb::Address::Notation_Modbus));
-    cmb->addItem(mb::toFineString(mb::Address::Notation_IEC61131));
-    cmb->addItem(mb::toFineString(mb::Address::Notation_IEC61131Hex));
+    // Note: item data is the value of 'mb::AddressNotation', first item is 'Default'
+    const mb::AddressNotation notations[] = { mb::Address::Notation_Default    ,
+                                              mb::Address::Notation_Modbus0    ,
+                                              mb::Address::Notation_Modbus     ,
+                                              mb::Address::Notation_IEC61131   ,
+                                              mb::Address::Notation_IEC61131Hex };
+    for (mb::AddressNotation n : notations)
+        cmb->addItem(n == mb::Address::Notation_Default ? mb::toString(n) : mb::toFineString(n), static_cast<int>(n));
 
     chb = ui->chbUseDefaultColumns;
     connect(chb, &QCheckBox::stateChanged, this, &mbCoreDialogDataView::slotUseDefaultColumnsChange);
@@ -171,6 +175,7 @@ void mbCoreDialogDataView::fillForm(const MBSETTINGS &m)
     else
         ui->chbEnableProcessing->setChecked(true);
 
+    fillFormInner(m);
 }
 
 void mbCoreDialogDataView::fillData(MBSETTINGS &settings)
@@ -183,16 +188,34 @@ void mbCoreDialogDataView::fillData(MBSETTINGS &settings)
     settings[s.useDefaultColumns] = ui->chbUseDefaultColumns->isChecked();
     settings[s.columns          ] = getColumns();
     settings[s.enableProcessing ] = ui->chbEnableProcessing->isChecked();
+    fillDataInner(settings);
+}
+
+QFormLayout *mbCoreDialogDataView::formLayout() const
+{
+    return ui->formLayout;
+}
+
+void mbCoreDialogDataView::setPeriodVisible(bool visible)
+{
+    ui->label_2->setVisible(visible);
+    ui->spPeriod->setVisible(visible);
+}
+
+void mbCoreDialogDataView::setPeriodLabel(const QString &label)
+{
+    ui->label_2->setText(label);
 }
 
 mb::AddressNotation mbCoreDialogDataView::addressNotation() const
 {
-    return static_cast<mb::AddressNotation>(ui->cmbAddressNotation->currentIndex());
+    return static_cast<mb::AddressNotation>(ui->cmbAddressNotation->currentData().toInt());
 }
 
 void mbCoreDialogDataView::setAddressNotation(mb::AddressNotation notation)
 {
-    ui->cmbAddressNotation->setCurrentIndex(notation);
+    int i = ui->cmbAddressNotation->findData(static_cast<int>(notation));
+    ui->cmbAddressNotation->setCurrentIndex(i < 0 ? 0 : i);
 }
 
 QStringList mbCoreDialogDataView::getColumns() const

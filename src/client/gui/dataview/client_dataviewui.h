@@ -25,6 +25,7 @@
 
 #include <core/gui/dataview/core_dataviewui.h>
 
+class QLabel;
 class mbClientDataView;
 class mbClientDataViewItem;
 class mbClientDataViewModel;
@@ -41,6 +42,14 @@ public:
     inline mbClientDataView *dataView() const { return reinterpret_cast<mbClientDataView *>(dataViewCore()); }
     inline mbClientDataViewModel *model() const { return reinterpret_cast<mbClientDataViewModel*>(modelCore()); }
     QList<mbClientDataViewItem*> selectedItems() const;
+
+private Q_SLOTS:
+    void updateHeader();
+
+private:
+    // New header: request statistics and status of the last request
+    QLabel *m_lbStatistics;
+    QLabel *m_lbStatus;
 };
 
 #endif // CLIENT_DATAVIEWUI_H

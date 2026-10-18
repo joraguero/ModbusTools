@@ -240,6 +240,11 @@ public:
 
     virtual mbCoreDomDataViewItem *newItem() const { return new mbCoreDomDataViewItem; }
 
+protected:
+    // Note: hooks to read/write additional elements of derived classes
+    virtual bool readExtraElement(const QString &/*tag*/, mbCoreXmlStreamReader &/*reader*/) { return false; }
+    virtual void writeExtraElements(mbCoreXmlStreamWriter &/*writer*/) const {}
+
 private:
     QString m_attr_name;
     int m_attr_period;

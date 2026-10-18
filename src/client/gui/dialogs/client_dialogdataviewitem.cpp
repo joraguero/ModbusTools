@@ -48,17 +48,7 @@ mbClientDialogDataViewItem::mbClientDialogDataViewItem(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    const mbClientDataViewItem::Defaults &d = mbClientDataViewItem::Defaults::instance();
-
-    QSpinBox *sp;
-
-    // Period
-    sp = ui->spPeriod;
-    sp->setMinimum(0);
-    sp->setMaximum(INT_MAX);
-    sp->setValue(d.period);
-
-    m_ui.cmbDevice                         = ui->cmbDevice                        ;
+    m_ui.cmbDevice                        = ui->cmbDevice                        ;
   //m_ui.cmbAdrType                        = ui->cmbAdrType                       ;
   //m_ui.spOffset                          = ui->spOffset                         ;
     m_ui.spCount                           = ui->spCount                          ;
@@ -81,47 +71,4 @@ mbClientDialogDataViewItem::mbClientDialogDataViewItem(QWidget *parent) :
 mbClientDialogDataViewItem::~mbClientDialogDataViewItem()
 {
     delete ui;
-}
-
-MBSETTINGS mbClientDialogDataViewItem::cachedSettings() const
-{
-    const mbClientDataViewItem::Strings &sItem = mbClientDataViewItem::Strings::instance();
-    MBSETTINGS settings = mbCoreDialogDataViewItem::cachedSettings();
-    const QString &prefix = Strings().cachePrefix;
-    settings[prefix+sItem.period] = ui->spPeriod->value();
-    return settings;
-}
-
-void mbClientDialogDataViewItem::setCachedSettings(const MBSETTINGS &settings)
-{
-    mbCoreDialogDataViewItem::setCachedSettings(settings);
-
-    MBSETTINGS::const_iterator it;
-    MBSETTINGS::const_iterator end = settings.end();
-    const mbClientDataViewItem::Strings &sItem = mbClientDataViewItem::Strings::instance();
-    const QString &prefix = Strings().cachePrefix;
-
-    it = settings.find(prefix+sItem.period); if (it != end) ui->spPeriod->setValue(it.value().toInt());
-}
-
-void mbClientDialogDataViewItem::fillFormEditInner(const MBSETTINGS &settings)
-{
-    const mbClientDataViewItem::Strings &sItem = mbClientDataViewItem::Strings::instance();
-    int period = settings.value(sItem.period).toInt();
-    ui->spPeriod->setValue(period);
-}
-
-void mbClientDialogDataViewItem::fillFormNewInner(const MBSETTINGS &settings)
-{
-    const mbClientDataViewItem::Strings &sItem = mbClientDataViewItem::Strings::instance();
-    MBSETTINGS::const_iterator it;
-    MBSETTINGS::const_iterator end = settings.end();
-
-    it = settings.find(sItem.period); if (it != end) ui->spPeriod->setValue(settings.value(sItem.period).toInt());
-}
-
-void mbClientDialogDataViewItem::fillDataInner(MBSETTINGS &settings) const
-{
-    const mbClientDataViewItem::Strings &sItem = mbClientDataViewItem::Strings::instance();
-    settings[sItem.period] = ui->spPeriod->value();
 }

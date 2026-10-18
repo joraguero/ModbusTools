@@ -45,15 +45,6 @@ public:
     explicit mbClientDialogDataViewItem(QWidget *parent = nullptr);
     ~mbClientDialogDataViewItem();
 
-public:
-    MBSETTINGS cachedSettings() const override;
-    void setCachedSettings(const MBSETTINGS &settings) override;
-
-private:
-    void fillFormEditInner(const MBSETTINGS &settings) override;
-    void fillFormNewInner(const MBSETTINGS &settings) override;
-    void fillDataInner(MBSETTINGS &settings) const override;
-
 private:
     Ui::mbClientDialogDataViewItem *ui;
 };

@@ -215,6 +215,8 @@ void mbCoreDomDataView::read(mbCoreXmlStreamReader &reader)
                 setEnableProcessing(reader.readElementText().toInt());
                 continue;
             }
+            if (readExtraElement(tag, reader))
+                continue;
             reader.processUnexpectedElement(tag);
         }
         break;
@@ -243,6 +245,7 @@ void mbCoreDomDataView::write(mbCoreXmlStreamWriter &writer, const QString &tagN
     writer.writeTextElement(s.useDefaultColumns, QString::number(useDefaultColumns()));
     writer.writeTextElement(s.columns, columns().join(s.sepColumns));
     writer.writeTextElement(s.enableProcessing, QString::number(enableProcessing()));
+    writeExtraElements(writer);
 
     Q_FOREACH (mbCoreDomDataViewItem *v, m_items)
         v->write(writer);

@@ -128,7 +128,17 @@ bool mbServerSimActionsModel::setData(const QModelIndex &index, const QVariant &
         }
             return true;
         case Column_Address:
-            simAction->setAddressStr(value.toString());
+            if (mbServer::global()->addressNotation() == mb::Address::Notation_Modbus0)
+            {
+                // Note: 0-based Modbus notation contains offset only, so memory type of the action is kept
+                bool ok;
+                int offset = value.toString().trimmed().toInt(&ok);
+                if (!ok || (offset < 0) || (offset > USHRT_MAX))
+                    return false;
+                simAction->setAddress(mb::Address(simAction->addressType(), static_cast<quint16>(offset)));
+            }
+            else
+                simAction->setAddressStr(value.toString());
             return true;
         case Column_DataType:
             simAction->setDataTypeStr(value.toString());

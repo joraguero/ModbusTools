@@ -324,7 +324,8 @@ mbServerDomSimAction *mbServerBuilder::toDomSimAction(mbServerSimAction *action)
     mbServerDomSimAction* dom = new mbServerDomSimAction;
     if (action->device())
         dom->setDevice(action->device()->name());
-    dom->setAddress(action->addressStr());
+    // Note: address is saved in standard Modbus notation, because offset-only notation (0-based) loses memory type
+    dom->setAddress(mb::toString(action->address(), mb::Address::Notation_Modbus));
     dom->setDataType(action->dataTypeStr());
     dom->setPeriod(action->period());
     dom->setComment(action->comment());

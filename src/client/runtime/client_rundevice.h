@@ -51,10 +51,6 @@ public: // settings
     inline uint16_t maxWriteMultipleRegisters  () const { return m_settings.maxWriteMultipleRegisters; }
 
 public:
-    void pushItemsToRead(const QList<mbClientRunItem*> &itemsToRead);
-    bool popItemsToRead(QList<mbClientRunItem*> &items);
-
-public:
     void pushItemsToWrite(const QList<mbClientRunItem*> &items);
     void pushItemToWrite(mbClientRunItem *item);
     bool popItemsToWrite(QList<mbClientRunItem*> &items);
@@ -82,7 +78,6 @@ private:
     } m_settings;
 
 private:
-    QList<mbClientRunItem*> m_itemsToRead;
     QQueue<mbClientRunItem*> m_itemsToWrite;
     QQueue<mbClientRunMessagePtr> m_externalMessages;
 };

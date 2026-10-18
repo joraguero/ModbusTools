@@ -38,6 +38,23 @@ class mbClientPort : public mbCorePort
 {
     Q_OBJECT
 
+public:
+    struct Strings : public mbCorePort::Strings
+    {
+        const QString pollDelay;
+
+        Strings();
+        static const Strings &instance();
+    };
+
+    struct Defaults : public mbCorePort::Defaults
+    {
+        const uint32_t pollDelay;
+
+        Defaults();
+        static const Defaults &instance();
+    };
+
 public: // statistics
     struct Statistics : public CoreStatistics
     {
@@ -56,6 +73,15 @@ public:
     QString extendedName() const override;
     inline mbClientProject* project() const { return reinterpret_cast<mbClientProject*>(mbCorePort::projectCore()); }
     inline void setProject(mbClientProject* project) { mbCorePort::setProjectCore(reinterpret_cast<mbCoreProject*>(project)); }
+
+public: // settings
+    // Note: delay (ms) between the end of a data view request and the start of the next one
+    //       (requests of the port are executed one at a time, e.g. RTU can't do them in parallel)
+    inline uint32_t pollDelay() const { return m_pollDelay; }
+    inline void setPollDelay(uint32_t delay) { m_pollDelay = delay; }
+
+    MBSETTINGS settings() const override;
+    bool setSettings(const MBSETTINGS &settings) override;
 
 public: // devices
     inline bool hasDevice(const QString& name) const { return device(name); }
@@ -86,6 +112,7 @@ Q_SIGNALS:
     void deviceRemoved(mbClientDevice*);
 
 private:
+    uint32_t m_pollDelay;
     typedef QList<mbClientDevice*> Devices_t;
     Devices_t m_devices;
 };

@@ -33,6 +33,7 @@
 
 #include <project/client_port.h>
 #include <project/client_device.h>
+#include <project/client_dataview.h>
 
 #include "client_runport.h"
 #include "client_rundevice.h"
@@ -65,12 +66,25 @@ mbClientPortRunnable::mbClientPortRunnable(mbClientRunPort *port, const Modbus::
     m_modbusPort->connect(&ModbusClientPort::signalError    , this, &mbClientPortRunnable::slotError    );
     m_modbusPort->connect(&ModbusClientPort::signalCompleted, this, &mbClientPortRunnable::slotCompleted);
 
+    QHash<mbClientRunDevice*, mbClientDeviceRunnable*> deviceRunnables;
     Q_FOREACH (mbClientRunDevice *device, m_devices)
     {
         mbClientDeviceRunnable *d = new mbClientDeviceRunnable(device, m_modbusPort);
         m_runnables.append(d);
         m_hashRunnables.insert(d->modbusClient(), d);
+        deviceRunnables.insert(device, d);
     }
+
+    Q_FOREACH (const mbClientRunPort::PollEntry &e, m_runPort->pollEntries())
+    {
+        if (mbClientDeviceRunnable *d = deviceRunnables.value(e.device))
+            m_polls.append(Poll{d, e.message, e.dataView, e.scanRate, 0});
+    }
+    m_pollIndex = m_polls.count() - 1; // so the first window is started first
+    m_pollActive = false;
+    m_pollDelay = m_runPort->pollDelay();
+    m_pollLastCompleteTime = 0;
+
     setName(settings.value(mbClientPort::Strings::instance().name).toString());
 }
 
@@ -110,8 +124,10 @@ void mbClientPortRunnable::run()
     }
         break;
     }
+    pollDataViews();
     Q_FOREACH (mbClientDeviceRunnable *d, m_runnables)
         d->run();
+    pollDataViews();
 
     //------------------------------------------
     // Statistics
@@ -347,6 +363,54 @@ Modbus::StatusCode mbClientPortRunnable::execExternalMessage()
     return res;
 }
 
+// Note: data view read messages have their own source name (e.g. 'Device/dataView') for log
+static QString logSourceName(mbClientDeviceRunnable *r)
+{
+    mbClientRunMessagePtr m = r->currentMessage();
+    if (m && !m->sourceName().isEmpty())
+        return m->sourceName();
+    return r->name();
+}
+
+void mbClientPortRunnable::pollDataViews()
+{
+    if (m_polls.isEmpty())
+        return;
+    mb::Timestamp_t now = mb::currentTimestamp();
+    if (m_pollActive)
+    {
+        Poll &p = m_polls[m_pollIndex];
+        if (!p.message->isCompleted())
+            return;
+        Modbus::StatusCode status = p.message->status();
+        QString text;
+        if (Modbus::StatusIsBad(status))
+            text = m_modbusPort->lastErrorText();
+        p.dataView->setStatRequestCompleted(status, text);
+        m_pollActive = false;
+        m_pollLastCompleteTime = now;
+        return;
+    }
+    if ((now - m_pollLastCompleteTime) < static_cast<mb::Timestamp_t>(m_pollDelay))
+        return;
+    // Start the next window (in turn after the last started one) which scan rate time is up
+    const int count = m_polls.count();
+    for (int k = 1; k <= count; k++)
+    {
+        int i = (m_pollIndex + k) % count;
+        Poll &p = m_polls[i];
+        if (p.lastBeginTime && ((now - p.lastBeginTime) < static_cast<mb::Timestamp_t>(p.scanRate)))
+            continue;
+        p.lastBeginTime = now;
+        p.message->clearCompleted();
+        p.runnable->requestRead(p.message);
+        p.dataView->setStatRequestStarted();
+        m_pollIndex = i;
+        m_pollActive = true;
+        return;
+    }
+}
+
 void mbClientPortRunnable::slotBytesTx(const Modbus::Char */*source*/, const uint8_t* buff, uint16_t size)
 {
     const ModbusClient *c = reinterpret_cast<const ModbusClient*>(m_modbusPort->currentClient());
@@ -356,7 +420,7 @@ void mbClientPortRunnable::slotBytesTx(const Modbus::Char */*source*/, const uin
     {
         r->currentMessage()->setBytesTx(bytes);
         reinterpret_cast<mbClientDevice*>(c->context())->incStatCountTx();
-        mbClient::LogTx(r->name(), Modbus::bytesToString(buff, size).data());
+        mbClient::LogTx(logSourceName(r), Modbus::bytesToString(buff, size).data());
     }
     else
     {
@@ -378,7 +442,7 @@ void mbClientPortRunnable::slotBytesRx(const Modbus::Char */*source*/, const uin
     {
         r->currentMessage()->setBytesRx(bytes);
         reinterpret_cast<mbClientDevice*>(c->context())->incStatCountRx();
-        mbClient::LogRx(r->name(), Modbus::bytesToString(buff, size).data());
+        mbClient::LogRx(logSourceName(r), Modbus::bytesToString(buff, size).data());
     }
     else
     {
@@ -398,7 +462,7 @@ void mbClientPortRunnable::slotAsciiTx(const Modbus::Char */*source*/, const uin
     {
         r->currentMessage()->setAsciiTx(bytes);
         reinterpret_cast<mbClientDevice*>(c->context())->incStatCountTx();
-        mbClient::LogTx(r->name(), Modbus::asciiToString(buff, size).data());
+        mbClient::LogTx(logSourceName(r), Modbus::asciiToString(buff, size).data());
     }
     else
     {
@@ -418,7 +482,7 @@ void mbClientPortRunnable::slotAsciiRx(const Modbus::Char */*source*/, const uin
     {
         r->currentMessage()->setAsciiRx(bytes);
         reinterpret_cast<mbClientDevice*>(c->context())->incStatCountRx();
-        mbClient::LogRx(r->name(), Modbus::asciiToString(buff, size).data());
+        mbClient::LogRx(logSourceName(r), Modbus::asciiToString(buff, size).data());
     }
     else
     {

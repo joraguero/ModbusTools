@@ -25,6 +25,7 @@
 
 #include "core_dialogedit.h"
 
+class QFormLayout;
 class mbCoreDevice;
 
 namespace Ui {
@@ -54,6 +55,13 @@ public:
 
 public:
     MBSETTINGS getSettings(const MBSETTINGS &settings = MBSETTINGS(), const QString &title = QString()) override;
+
+protected: // hooks for derived dialogs
+    QFormLayout *formLayout() const;
+    void setPeriodVisible(bool visible);
+    void setPeriodLabel(const QString &label);
+    virtual void fillFormInner(const MBSETTINGS &/*settings*/) {}
+    virtual void fillDataInner(MBSETTINGS &/*settings*/) {}
 
 private:
     void fillForm(const MBSETTINGS &settings);

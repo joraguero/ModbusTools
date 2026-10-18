@@ -44,24 +44,6 @@ mbClientRunDevice::~mbClientRunDevice()
     qDeleteAll(m_itemsToWrite);
 }
 
-void mbClientRunDevice::pushItemsToRead(const QList<mbClientRunItem *> &itemsToRead)
-{
-    QWriteLocker _(&m_lock);
-    m_itemsToRead.append(itemsToRead);
-}
-
-bool mbClientRunDevice::popItemsToRead(QList<mbClientRunItem*> &items)
-{
-    QWriteLocker _(&m_lock);
-    if (m_itemsToRead.count())
-    {
-        items = m_itemsToRead;
-        m_itemsToRead.clear();
-        return true;
-    }
-    return false;
-}
-
 void mbClientRunDevice::pushItemsToWrite(const QList<mbClientRunItem *> &items)
 {
     QWriteLocker _(&m_lock);

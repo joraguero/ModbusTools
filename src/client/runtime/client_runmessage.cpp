@@ -36,7 +36,6 @@ mbClientRunMessage::mbClientRunMessage(mbClientRunItem *item, uint16_t maxCount,
         m_count = m_maxCount;
     m_writeOffset = 0;
     m_writeCount = 0;
-    m_period = item->period();
     m_status = Modbus::Status_Uncertain;
     m_beginTimestamp = 0;
     m_timestamp = 0;
@@ -58,7 +57,6 @@ mbClientRunMessage::mbClientRunMessage(uint8_t unit, uint16_t offset, uint16_t c
         m_count = m_maxCount;
     m_writeOffset = 0;
     m_writeCount = 0;
-    m_period = 0;
     m_maxCount = maxCount;
     m_status = Modbus::Status_Uncertain;
     m_beginTimestamp = 0;
@@ -78,11 +76,6 @@ mbClientRunMessage::~mbClientRunMessage()
 
 bool mbClientRunMessage::addItem(mbClientRunItem *item)
 {
-    if (item->period() != period())
-    {
-        // Unsuccessful (period don't match)
-        return false;
-    }
     if (item->memoryType() != memoryType())
     {
         // Unsuccessful (memoryType don't match)

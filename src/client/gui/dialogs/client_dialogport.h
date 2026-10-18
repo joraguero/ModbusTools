@@ -25,6 +25,8 @@
 
 #include <gui/dialogs/core_dialogport.h>
 
+class QSpinBox;
+
 namespace Ui {
 class mbClientDialogPort;
 }
@@ -47,6 +49,7 @@ private:
 
 private:
     Ui::mbClientDialogPort *ui;
+    QSpinBox *m_spPollDelay;
 };
 
 #endif // CLIENT_DIALOGPORT_H

@@ -118,7 +118,17 @@ bool mbCoreDataViewModel::setData(const QModelIndex &index, const QVariant &valu
         }
             return true;
         case mbCoreDataView::Address:
-            item->setAddressStr(value.toString());
+            if (m_dataView->getAddressNotation() == mb::Address::Notation_Modbus0)
+            {
+                // Note: 0-based Modbus notation contains offset only, so memory type of the item is kept
+                bool ok;
+                int offset = value.toString().trimmed().toInt(&ok);
+                if (!ok || (offset < 0) || (offset > USHRT_MAX))
+                    return false;
+                item->setAddress(item->addressType(), static_cast<quint16>(offset));
+            }
+            else
+                item->setAddressStr(value.toString());
             return true;
         case mbCoreDataView::Format:
             item->setFormatStr(value.toString());

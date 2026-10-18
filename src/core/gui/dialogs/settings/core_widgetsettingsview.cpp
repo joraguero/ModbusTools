@@ -9,10 +9,14 @@ mbCoreWidgetSettingsView::mbCoreWidgetSettingsView(QWidget *parent) :
 
     QComboBox *cmb;
     cmb = ui->cmbAddressNotation;
-    cmb->addItem(mb::toFineString(mb::Address::Notation_Modbus));
-    cmb->addItem(mb::toFineString(mb::Address::Notation_IEC61131));
-    cmb->addItem(mb::toFineString(mb::Address::Notation_IEC61131Hex));
-    cmb->setCurrentIndex(0);
+    // Note: item data is the value of 'mb::AddressNotation'
+    const mb::AddressNotation notations[] = { mb::Address::Notation_Modbus0    ,
+                                              mb::Address::Notation_Modbus     ,
+                                              mb::Address::Notation_IEC61131   ,
+                                              mb::Address::Notation_IEC61131Hex };
+    for (mb::AddressNotation n : notations)
+        cmb->addItem(mb::toFineString(n), static_cast<int>(n));
+    setAddressNotation(mb::Address::Notation_Modbus);
 }
 
 mbCoreWidgetSettingsView::~mbCoreWidgetSettingsView()
@@ -32,11 +36,14 @@ void mbCoreWidgetSettingsView::setUseNameWithSettings(bool use)
 
 mb::AddressNotation mbCoreWidgetSettingsView::addressNotation() const
 {
-    return static_cast<mb::AddressNotation>(ui->cmbAddressNotation->currentIndex()+1);
+    return static_cast<mb::AddressNotation>(ui->cmbAddressNotation->currentData().toInt());
 }
 
 void mbCoreWidgetSettingsView::setAddressNotation(mb::AddressNotation notation)
 {
-    ui->cmbAddressNotation->setCurrentIndex(notation-1);
+    int i = ui->cmbAddressNotation->findData(static_cast<int>(notation));
+    if (i < 0) // Note: 'Notation_Default' is 'Notation_Modbus'
+        i = ui->cmbAddressNotation->findData(static_cast<int>(mb::Address::Notation_Modbus));
+    ui->cmbAddressNotation->setCurrentIndex(i);
 }
 

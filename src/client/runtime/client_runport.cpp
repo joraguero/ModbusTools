@@ -3,7 +3,8 @@
 #include "client_runmessage.h"
 
 mbClientRunPort::mbClientRunPort(mbClientPort *port) :
-    m_port(port)
+    m_port(port),
+    m_pollDelay(port->pollDelay())
 {
 }
 

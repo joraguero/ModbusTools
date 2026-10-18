@@ -47,18 +47,8 @@ void mbClientRuntime::createComponents()
     const mb::StatusCode status = mb::Status_MbInitializing;
     const mb::Timestamp_t timestamp = mb::currentTimestamp();
 
-    QHash<mbClientDevice*, QList<mbClientDataViewItem*> > hashDevices;
-    Q_FOREACH (mbClientDataView *wl, project()->dataViews())
-    {
-        if (wl->isEnableProcessing())
-        {
-            Q_FOREACH (mbClientDataViewItem *item, wl->items())
-            {
-                if (item->device())
-                    hashDevices[item->device()].append(item);
-            }
-        }
-    }
+    Q_FOREACH (mbClientDataView *dataView, project()->dataViews())
+        dataView->resetStatistics();
 
     Q_FOREACH (mbClientPort *port, project()->ports())
     {
@@ -66,20 +56,50 @@ void mbClientRuntime::createComponents()
         QList<mbClientRunDevice*> runDevices;
         Q_FOREACH (mbClientDevice *device, port->devices())
         {
-            const QList<mbClientDataViewItem*> &items = hashDevices[device];
-            QList<mbClientRunItem*> runItems;
-            Q_FOREACH (mbClientDataViewItem *item, items)
+            mbClientRunDevice *rd = createRunDevice(device);
+            runDevices.append(rd);
+        }
+        // Every data view window is one Modbus request polled in turn with other windows of the port
+        Q_FOREACH (mbClientDataView *dataView, project()->dataViews())
+        {
+            if (!dataView->isEnableProcessing() || !dataView->isRequestValid())
+                continue;
+            mbClientDevice *device = dataView->requestDevice();
+            if (device->port() != port)
+                continue;
+            mbClientRunMessagePtr message = createReadMessage(dataView);
+            if (!message)
+                continue;
+            message->setSourceName(QString("%1/%2").arg(device->name(), dataView->name()));
+            Q_FOREACH (mbClientDataViewItem *item, dataView->items())
             {
                 item->update(status, timestamp);
-                mbClientRunItem *ri = createRunItem(item);
-                runItems.append(ri);
+                message->attachItem(createRunItem(item));
             }
-            mbClientRunDevice *rd = createRunDevice(device);
-            rd->pushItemsToRead(runItems);
-            runDevices.append(rd);
+            uint32_t scanRate = static_cast<uint32_t>(qMax(dataView->period(), 0));
+            rp->pushPollEntry(mbClientRunPort::PollEntry{m_devices.value(device), message, dataView, scanRate});
         }
         createRunThread(rp);
         rp->pushDevices(runDevices);
+    }
+}
+
+mbClientRunMessagePtr mbClientRuntime::createReadMessage(mbClientDataView *dataView)
+{
+    mbClientDevice *device = dataView->requestDevice();
+    uint16_t offset = dataView->requestOffset();
+    int count = qMin(dataView->requestQuantity(), mbClientDataView::maxQuantity(device, dataView->requestMemoryType()));
+    if (count <= 0)
+        return nullptr;
+    uint16_t c = static_cast<uint16_t>(count);
+    switch (dataView->requestMemoryType())
+    {
+    case Modbus::Memory_0x: return new mbClientRunMessageReadCoils           (offset, c, c);
+    case Modbus::Memory_1x: return new mbClientRunMessageReadDiscreteInputs  (offset, c, c);
+    case Modbus::Memory_3x: return new mbClientRunMessageReadInputRegisters  (offset, c, c);
+    case Modbus::Memory_4x: return new mbClientRunMessageReadHoldingRegisters(offset, c, c);
+    default:
+        return nullptr;
     }
 }
 
@@ -178,7 +198,6 @@ mbClientRunItem *mbClientRuntime::createRunItem(mbClientDataViewItem *item)
                                              item->addressType(),
                                              item->addressOffset(),
                                              item->count(),
-                                             item->period(),
                                              item->sizeOf());
     m_items.insert(item, t);
     return t;

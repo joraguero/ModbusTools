@@ -33,6 +33,13 @@ It based on `ModbusLib` cross platform library project:
 
 <https://github.com/serhmarch/ModbusLib>
 
+> **About this fork**
+>
+> This repository (<https://github.com/joraguero/ModbusTools>) is a fork of
+> <https://github.com/serhmarch/ModbusTools>. It uses the ModbusLib fork
+> <https://github.com/joraguero/ModbusLib> (branch `dtr-enable`) as its `modbus` submodule.
+> See [Fork changes](#fork-changes) for what is different from the original project.
+
 ## Support
 
 If ModbusTools helps you with your work and you find these programs useful,
@@ -44,26 +51,59 @@ Thank you for your support.
 
 ## Release
 
-All compiled binaries are located in the latest release:
+All compiled binaries of the original project are located in its latest release:
 
 https://github.com/serhmarch/ModbusTools/releases
+
+This fork provides binary versions: 
+https://github.com/joraguero/ModbusTools/releases
+
+Build it from the source code, as described in [src/README.md](./src/README.md).
+
+## Fork changes
+
+Changes of this fork compared to the original ModbusTools (client application unless stated otherwise):
+
+* **New style for DataView windows** - every data view window is one Modbus request
+  (device, function, address, quantity) with its own scan rate, and shows the request statistics
+  and the status of the last request in its header.
+  See [Data view windows](#data-view-windows-new-style).
+* **Scan rate and Poll delay** - windows of the same port are polled one at a time
+  (safe for RTU/ASCII serial lines), with a configurable delay between requests.
+* **Simplified data view columns** - `Device`, `Period` and `Status` columns are removed:
+  the device, scan rate and status are shown in the window header.
+* **Modbus (0-based) address notation** - shows the address as offset only (`400101` is shown as `100`).
+  See [Memory item addressing](#memory-item-addressing).
+* **Serial port DTR control** - `DTR` checkbox for serial ports (client and server),
+  required by many USB CDC devices. See [Serial port DTR](#serial-port-dtr).
+* **Log shows the data view name** - frames and errors of the window requests are logged as
+  `'Device/window'` (e.g. `'PLC1/Holding' [Tx]: ...`).
+* **MinGW build fix** - `ModbusLib` classes are exported/imported with `__declspec` for all Windows
+  compilers. Before this fix, MinGW builds didn't show Modbus frames in LogView and didn't count Tx/Rx.
 
 ## Memory item addressing
 
 Modbus Tools supports next addressing types:
-- `Standard`, 1-based, 6-digit memory addressing type.
+- `Modbus (0-based)` (this fork), offset only, e.g. `0`, `100`.
+The memory type is defined by the function of the data view request (`01`-`04`).
+- `Standard` (`Modbus (1-based)`), 1-based, 6-digit memory addressing type.
 The left digit indicates the memory type (`0`, `1`, `3` or `4`) and
 the right 5 digits indicate the address of the memory cell starting from 1 - [1:65536].
 - `IEC61131-3`, 0 based, uses `%Q`(`%M`), `%I`, `%IW`, `%MW` correspondingly
 - `IEC61131-3 (Hex)`, 0 based, same as `IEC61131-3` but uese hexadecimal address instead of decimal
 
 Addressing examples:
-| Memory type       | Mnemo | Acces.| 1 based  | 0 based, IEC | 0 based hex, IEC | Description
-|-------------------|-------|-------|----------|--------------|------------------|---------------------------
-| Coils             | `0x`  | `RW`  | `000001` | `%Q0`        | `%Q0000h`        | Discrete output, boolean
-| Discrete inputs   | `1x`  | `RO`  | `100016` | `%I15`       | `%I000Fh`        | Discrete input, boolean
-| Input registers   | `3x`  | `RO`  | `300017` | `%IW16`      | `%IW0010h`       | Analog input, 16 bit word
-| Holding registers | `4x`  | `RW`  | `406658` | `%MW6657`    | `%MW1A01h`       | Analog output, 16 bit word
+| Memory type       | Mnemo | Acces.| 0 based, Modbus | 1 based  | 0 based, IEC | 0 based hex, IEC | Description
+|-------------------|-------|-------|-----------------|----------|--------------|------------------|---------------------------
+| Coils             | `0x`  | `RW`  | `0`             | `000001` | `%Q0`        | `%Q0000h`        | Discrete output, boolean
+| Discrete inputs   | `1x`  | `RO`  | `15`            | `100016` | `%I15`       | `%I000Fh`        | Discrete input, boolean
+| Input registers   | `3x`  | `RO`  | `16`            | `300017` | `%IW16`      | `%IW0010h`       | Analog input, 16 bit word
+| Holding registers | `4x`  | `RW`  | `6657`          | `406658` | `%MW6657`    | `%MW1A01h`       | Analog output, 16 bit word
+
+The notation is selected globally in `Tools->Settings` (`Modbus adr. notation`) and
+can be overridden for every data view (`Adr. notation` in the data view dialog).
+Options are listed in this order: `Modbus (0-based)`, `Modbus (1-based)`, `IEC61131 (0-based)`,
+`IEC61131 Hex (0-based)`.
 
 ## About Modbus Client
 
@@ -77,11 +117,46 @@ if you use the TCP->RTU bridge.
 ![](./doc/images/client_view.png)
 
 All work is performed within a single project. 
-The main entities in the project are Port, Device and DataViewItem.
+The main entities in the project are Port, Device and DataView.
 Port contains network settings for both TCP/IP and serial ports. 
 Device contains settings for a single device (such as Modbus Unit Address, etc.).  
-The DataViewItem contains a single data unit to be read from the remote device and 
-has many formats to represent the current data.
+DataView is a window with one Modbus request to a device; its rows (DataViewItems) are
+the data units of the request and have many formats to represent the current data.
+
+### Data view windows (New style)
+
+*This fork.* Each data visualization window functions as an independent Modbus window:
+
+* **Request** - the data view dialog (`Data->New Data View` / `Edit Data View`) defines
+  `Device`, `Function` (`01 Read Coils`, `02 Read Discrete Inputs`, `03 Read Holding Registers`,
+  `04 Read Input Registers`), `Address` (0-based offset) and `Quantity`.
+  Rows are generated from the request (one row per address), so they can't be added or deleted
+  separately; `Format`, `Comment` (alias) and other value parameters of rows can still be edited.
+* **Scan rate** - `Scan rate (ms)` of the data view: the window sends its request every
+  scan rate milliseconds.
+* **Poll delay** - `Poll delay` of the port: requests of all windows of the port are executed one at a time,
+  and the next request starts at least `Poll delay` ms after the previous one finished.
+  This keeps RTU/ASCII serial lines free of overlapping requests.
+* **Header** - the first line shows `Device[unit]: Tx=<sent>, Err=<errors>, F=<function>, SR=<scan rate>ms`,
+  e.g. `PLC1[1]: Tx=7, Err=0, F=03, SR=1000ms`.
+  The second line shows the status of the last request: `Good` in green,
+  the error (e.g. `BadIllegalDataAddress - Returned Modbus-exception with code 0x2`) in red,
+  and `No connection` when polling is stopped.
+* **Columns** - `Device`, `Period` and `Status` columns don't exist anymore
+  (this information is in the header). Available columns: `Address`, `Format`, `Comment`, `Value`, `Timestamp`.
+* **Log** - Tx/Rx frames and errors of the window requests are logged with the source `'Device/window'`,
+  so it's easy to see which window got an error.
+* **Projects of previous versions** - a data view without request is converted when the project is opened:
+  device and memory type are taken from the first row and the address range from the rows
+  with the same device and memory type. Rows that don't fit the request are removed
+  (a warning is written to LogView).
+
+### Serial port DTR
+
+*This fork.* Port dialogs (client and server), the client device dialog and the scanner have a `DTR` checkbox.
+When it is checked, the DTR line of the serial port is asserted while the port is open.
+Many USB CDC devices (USB-serial adapters built into the device) don't transmit data until DTR is set.
+The value is saved in the project as the port setting `dtrEnable`.
 
 ### Send Message window
 
